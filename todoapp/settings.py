@@ -85,13 +85,18 @@ WSGI_APPLICATION = 'todoapp.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/3.2/ref/settings/#databases
 
+
+# Database settings
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': os.environ.get('DB_NAME'),  # Fetch from environment variable
+        'USER': os.environ.get('DB_USER'),  # Fetch from environment variable
+        'PASSWORD': os.environ.get('DB_PASSWORD'),  # Fetch from environment variable
+        'HOST': os.environ.get('DB_HOST'),  # Use the headless service DNS
+        'PORT': '3306',  # Default MySQL port
     }
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/3.2/ref/settings/#auth-password-validators

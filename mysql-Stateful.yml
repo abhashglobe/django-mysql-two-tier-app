@@ -1,0 +1,71 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: mysql  # Name of the StatefulSet
+spec:
+  serviceName: "mysql-svc"  # Reference to the Headless Service
+  replicas: 2  # Number of pod replicas
+  selector:
+    matchLabels:
+      app: mysql  # Label selector for the pods
+  template:
+    metadata:
+      labels:
+        app: mysql  # Labels for the pods
+    spec:
+      containers:
+      - name: mysql-cont
+        image: mysql:latest
+        env:
+        - name: MYSQL_ROOT_PASSWORD
+          value: "1234"  # Root password for MySQL
+        - name: MYSQL_DATABASE
+          value: "djangodb"  # Name of the database
+        - name: MYSQL_USER
+          value: "user1"  # MySQL user
+        - name: MYSQL_PASSWORD
+          value: "1234"  # Password for the MySQL user
+        ports:
+        - containerPort: 3306  # MySQL default port
+        volumeMounts:
+        - mountPath: /var/lib/mysql  # Correct MySQL data directory
+          name: mysql-persistent-storage  # Name of the volume to mount
+        livenessProbe:
+          exec:
+            command: ["mysqladmin", "ping", "-h", "localhost"]
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          exec:
+            command: ["mysqladmin", "ping", "-h", "localhost"]
+          initialDelaySeconds: 10
+          periodSeconds: 10
+        resources:
+          requests:
+            memory: "500Mi"
+            cpu: "50m"
+          limits:
+            memory: "800Mi"
+            cpu: "150m"
+  volumeClaimTemplates:
+  - metadata:
+      name: mysql-persistent-storage  # Each pod will get its own PVC
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      storageClassName: "gp2"  # AWS EBS storage class
+      resources:
+        requests:
+          storage: 1Gi  # Size of each EBS volume
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: mysql-svc  # Name of your headless service
+spec:
+  clusterIP: None  # This makes the service headless
+  ports:
+    - port: 3306  # MySQL default port
+      targetPort: 3306  # Port that the container listens on
+  selector:
+    app: mysql  # Match the pods with this label
