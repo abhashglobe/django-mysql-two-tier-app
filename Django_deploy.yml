@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   name: django-app  # Name of the deployment
 spec:
-  replicas: 2  # Number of desired pod replicas
+  replicas: 1  # Number of desired pod replicas
   selector:
     matchLabels:
       app: django  # Selector to match pods with the label "app: django"
