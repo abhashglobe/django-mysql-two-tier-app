@@ -13,7 +13,7 @@ def my_todos(request):
 
     # Ensure the categories with id=1, id=2, and id=3 exist or create them if they don't
     category1, created1 = Category.objects.get_or_create(
-        id=1, defaults={'name': 'Business'}  # You can change 'Business' to any default name you want
+        id=1, defaults={'name': 'Businesses'}  # You can change 'Business' to any default name you want
     )
     category2, created2 = Category.objects.get_or_create(
         id=2, defaults={'name': 'Personal'}
