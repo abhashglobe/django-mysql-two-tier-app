@@ -1,0 +1,50 @@
+pipeline {
+    agent any
+    options {
+        buildDiscarder logRotator(artifactDaysToKeepStr: '', artifactNumToKeepStr: '', daysToKeepStr: '10', numToKeepStr: '3')
+    }
+    environment {
+        DockerCred = credentials('Docker-cred')
+    }
+
+    stages {
+        stage('checkout stage') {
+            steps {
+                checkout scmGit(branches: [[name: '*/main']], extensions: [], userRemoteConfigs: [[url: 'https://github.com/Aditya241193/django-mysql-two-tier-app.git']])
+            }
+        }
+
+        stage('Docker-build') {
+            steps {
+                sh 'docker build -t adityasirothia/djnago-mysql-prod-app:$BUILD_NUMBER .'
+            }
+        }
+
+        stage('dockerHUB push') {
+            steps {
+                sh 'echo $DockerCred_PSW | docker login -u $DockerCred_USR --password-stdin'
+                sh 'docker push adityasirothia/djnago-mysql-prod-app:$BUILD_NUMBER'
+            }
+        }
+
+        stage('Update image in deployment file') {
+            steps {
+                sh '''
+                sed -i "s|adityasirothia/new-django-mysql-app:StatefulSet3|adityasirothia/djnago-mysql-prod-app:$BUILD_NUMBER|g" path/to/your/deployment.yaml
+                '''
+            }
+        }
+
+        stage('Apply updated deployment') {
+            steps {
+                sh 'kubectl apply -f path/to/your/deployment.yaml'
+            }
+        }
+
+        stage('testing kubectl') {
+            steps {
+                sh 'kubectl get pods -n jenkins'
+            }
+        }
+    }
+}
